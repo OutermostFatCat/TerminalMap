@@ -5,31 +5,29 @@ int x_size;
 
 char **allocate_Map(char *map);
 void write_Map(char *map[]);
+void *free_Map(char *map[]);
 
 int main(int argc, char *argv[])
 {
+
 	if (argc != 2) {
-		printf("ERROR: Not enough arguments");
+		printf("ERROR: Not enough arguments\n");
 		return -1;
 	}
 
 	char **map = allocate_Map(argv[1]);
 	write_Map(map);
 
-	char array[] = (char *) malloc(sizeof(char) * (7));
-	int z = 0;
-	while(z < 6) {
-		*(map[0])++ = 'B';
-		z++;
-	}
-	*map[0] = '\0';
-
 	int i;
 	printf("\n\n");
 	for (i = 0; map[i] != NULL; ++i) {
-		printf("%d -- %s\n",i , map[i]);
+
+		/* print from start of the pointed array */
+		printf("%s\n", map[i] - x_size + 1);
 	}
-	printf("6 -- NULL\n");
+	printf("\n");
+
+	map = free_Map(map);
 	return 0;
 }
 
@@ -39,11 +37,11 @@ void write_Map(char *map[]) {
 	int x;
 
 	/* write first row*/
-	*(map[row]) = ' ';
-	for (x = 1; x < x_size - 2; ++x) {
-		*++(map[row]) = '_';
-	}
 	*map[row] = ' ';
+	for (x = 1; x < x_size - 2; ++x) {
+		*++map[row] = '_';
+	}
+	*++map[row] = ' ';
 	*++(map[row]) = '\0';
 
 	if (map[row + 1] == NULL) {
@@ -61,22 +59,20 @@ void write_Map(char *map[]) {
 	/* write last row*/
 	*map[row] = ' ';
 	for (x = 1; x < x_size - 2; ++x) {
-		*++(map[row]) = '_';
+		*++(map[row]) = '/';
 	}
 	*++(map[row]) = ' ';
 	*++(map[row]) = '\0';
 
-	if (map[++row] == NULL) {
-		printf("everything worked");
-	} else {
-		printf("ERROR: In writing map");
+	if (map[++row] != NULL) {
+		printf("ERROR: In writing map\n");
 	}
 }
 
 char **allocate_Map(char *map) {
 
 	if(*map <= '0' || *map > '9') {
-		printf("ERROR: Geometry doesn't add up");
+		printf("ERROR: Geometry doesn't add up\n");
 		exit(0);
 	}
 
@@ -93,8 +89,12 @@ char **allocate_Map(char *map) {
 	/* if argument doesn't have BxB but instead
 	   only a B, allocate memery for map of size BxB
 	*/
-	if (*map == 'x') {
-		for (*++map; *map != '\0' && *map != '\n'; *++map) {
+	if (*map++ == 'x') {
+		if(*map <= '0' || *map > '9') {
+			printf("ERROR: Geometry doesn't add up\n");
+			exit(0);
+		}
+		for (; *map != '\0' && *map != '\n'; *++map) {
 			size[1] = size[1] * 10 + *map - '0';
 		}
 
@@ -123,4 +123,16 @@ char **allocate_Map(char *map) {
 		}
 		return allocated_Map;
 	}
+}
+
+void *free_Map(char *map[]) {
+	
+	int i;
+	while (*map != NULL) {
+		free(*map++);
+		printf("%d\n", i);
+	}
+	free(map);
+
+	return NULL;
 }
