@@ -42,7 +42,7 @@ void write_Map(char *map[]) {
 		*++map[row] = '_';
 	}
 	*++map[row] = ' ';
-	*++(map[row]) = '\0';
+	*++map[row] = '\0';
 
 	if (map[row + 1] == NULL) {
 		exit(0);
@@ -50,19 +50,19 @@ void write_Map(char *map[]) {
 
 	for (++row; map[row + 1] != NULL; ++row) {
 		for (x = 1, *map[row] = '|'; x < x_size - 2; ++x) {
-			*++(map[row]) = '+';	
+			*++map[row] = '+';	
 		}
-		*++(map[row]) = '|';
-		*++(map[row]) = '\0';
+		*++map[row] = '|';
+		*++map[row] = '\0';
 	}
 
 	/* write last row*/
 	*map[row] = ' ';
 	for (x = 1; x < x_size - 2; ++x) {
-		*++(map[row]) = '/';
+		*++map[row] = '/';
 	}
-	*++(map[row]) = ' ';
-	*++(map[row]) = '\0';
+	*++map[row] = ' ';
+	*++map[row] = '\0';
 
 	if (map[++row] != NULL) {
 		printf("ERROR: In writing map\n");
