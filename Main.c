@@ -125,12 +125,19 @@ char **allocate_Map(char *map) {
 	}
 }
 
+/* Frees the map and all of its pointers except the null pointer.
+   Worthwhile thing to remember: To free memory from a pointer, the pointer
+   has to contain the address of the start of the allocated memory? (probably)
+   Also: You are allowed to free a null pointer, nothing happens? (probably)
+*/
 void *free_Map(char *map[]) {
 	
-	int i;
-	while (*map != NULL) {
-		free(*map++);
-		printf("%d\n", i);
+	int i = 0;
+	while (map[i] != NULL) {
+
+		/* free from the start of the allocated memory */
+		free(map[i] - x_size + 1);
+		printf("%d\n", i++);
 	}
 	free(map);
 
