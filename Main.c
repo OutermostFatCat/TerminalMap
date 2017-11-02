@@ -19,8 +19,7 @@ int main(int argc, char *argv[])
 	write_Map(map);
 
 	int i;
-	printf("\n\n");
-	for (i = 0; map[i] != NULL; ++i) {
+	for (printf("\n\n"), i = 0; map[i] != NULL; ++i) {
 
 		/* print from start of the pointed array */
 		printf("%s\n", map[i] - x_size + 1);
@@ -136,8 +135,7 @@ void *free_Map(char *map[]) {
 	while (map[i] != NULL) {
 
 		/* free from the start of the allocated memory */
-		free(map[i] - x_size + 1);
-		printf("%d\n", i++);
+		free(map[i++] - x_size + 1);
 	}
 	free(map);
 
