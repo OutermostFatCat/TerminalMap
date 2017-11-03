@@ -1,14 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include "Map.h"
 
 int x_size;
+int y_size;
+struct timespec delay;
+
 
 char **allocate_Map(char *map);
-void write_Map(char *map[]);
+void write_Map(char *map[], character *man);
 void *free_Map(char *map[]);
+void character_pos(character *man);
 
 int main(int argc, char *argv[])
 {
+	character man;
+	man.x_pos = 1;
+	man.y_pos = 1;
+	man.x_pending = 0;
+	man.y_pending = 0;
+
+	/* FPS = 10 */
+	delay.tv_sec = 0;
+	delay.tv_nsec = 100000000;
 
 	if (argc != 2) {
 		printf("ERROR: Not enough arguments\n");
@@ -16,21 +31,30 @@ int main(int argc, char *argv[])
 	}
 
 	char **map = allocate_Map(argv[1]);
-	write_Map(map);
+	pthread_t *thread =mov_Initialize(&man);
+	write_Map(map, &man);
+
+	new_Inputmode();
 
 	int i;
-	for (printf("\n\n"), i = 0; map[i] != NULL; ++i) {
-
-		/* print from start of the pointed array */
-		printf("%s\n", map[i] - x_size + 1);
+	for (i = 0; 1; write_Map(map, &man)) {
+		for (printf("\n\n"), i = 0; map[i] != NULL; ++i) {
+	
+			/* print from start of the pointed array */
+			printf("%s\n", map[i] - x_size + 1);
+		}
+		printf("\n");
+		nanosleep(&delay, NULL);
 	}
-	printf("\n");
 
+	/* clean up */
+	old_Inputmode();
+	thread = mov_exit(thread);
 	map = free_Map(map);
 	return 0;
 }
 
-void write_Map(char *map[]) {
+void write_Map(char *map[], character *man) {
 
 	int row = 0;
 	int x;
@@ -55,7 +79,7 @@ void write_Map(char *map[]) {
 		*++map[row] = '\0';
 	}
 
-	/* write last row*/
+	/* write last row */
 	*map[row] = ' ';
 	for (x = 1; x < x_size - 2; ++x) {
 		*++map[row] = '/';
@@ -63,9 +87,44 @@ void write_Map(char *map[]) {
 	*++map[row] = ' ';
 	*++map[row] = '\0';
 
+	character_pos(man);
+
+	/* Saves current character position on map */
+	*(map[man->y_pos] + man->x_pos - x_size + 1) = 'C';
+
 	if (map[++row] != NULL) {
 		printf("ERROR: In writing map\n");
 	}
+}
+
+/* Updates current position of character */
+void character_pos(character *man) {
+
+	if (man->x_pos > 1 && man->x_pending < 0) {
+		while (man->x_pos != 1 && man->x_pending != 0) {
+			--man->x_pos;
+			++man->x_pending;
+		}
+	} else if (man->x_pos < x_size - 3 && man->x_pending > 0) {
+		while (man->x_pos != x_size - 3 && man->x_pending != 0) {
+			++man->x_pos;
+			--man->x_pending;
+		}
+	}
+	if (man->y_pos > 1 && man->y_pending < 0) {
+		while (man->y_pos != 1 && man->y_pending != 0) {
+			--man->y_pos;
+			++man->y_pending;
+		}
+	} else if (man->y_pos < y_size - 3 && man->y_pending > 0) {
+		while (man->y_pos != y_size - 3 && man->y_pending != 0) {
+			++man->y_pos;
+			--man->y_pending;
+		}
+	}
+
+	man->x_pending = 0;
+	man->y_pending = 0;
 }
 
 char **allocate_Map(char *map) {
@@ -96,6 +155,7 @@ char **allocate_Map(char *map) {
 		for (; *map != '\0' && *map != '\n'; *++map) {
 			size[1] = size[1] * 10 + *map - '0';
 		}
+		y_size = size[1] + 3;
 
 		/* Allocate memory for the row of pointers,
 		   which is the height of the map + 3, the last one
@@ -114,6 +174,7 @@ char **allocate_Map(char *map) {
 		return allocated_Map;
 
 	} else {
+		y_size = x_size;
 		allocated_Map = malloc(sizeof(char *) * (size[0] + 3));
 		allocated_Map[size[0] + 2] = NULL;
 
