@@ -1,4 +1,4 @@
 # TerminalMap
 Creating a map in the Linux Terminal
 
-Test Test
+You can now walk around in the map, wonderful.
