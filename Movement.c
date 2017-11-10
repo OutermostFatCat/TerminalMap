@@ -7,13 +7,56 @@
 /* Movement lock */
 pthread_mutex_t lock_Movement;
 
+/* Updates current position of character */
+void character_pos(char **map, character *man) {
+
+	int x_old = man->x_pos;
+	int y_old = man->y_pos;
+
+	/* go to left */
+	if (man->x_pending < 0) {
+		while (man->x_pending != 0) {
+			--man->c_x;
+			--man->x_pos;
+			++man->x_pending;
+		}
+
+	/* else go to right */
+	} else if (man->x_pending > 0) {
+		while (man->x_pending != 0) {
+			++man->c_x;
+			++man->x_pos;
+			--man->x_pending;
+		}
+	}
+
+	/* go up */
+	if (man->y_pending < 0) {
+		while (man->y_pending != 0) {
+			++man->c_y;
+			--man->y_pos;
+			++man->y_pending;
+		}
+
+	/* else go down */
+	} else if (man->y_pending > 0) {
+		while (man->y_pending != 0) {
+			--man->c_y;
+			++man->y_pos;
+			--man->y_pending;
+		}
+	}
+	map[y_old][x_old] = man->stand_texture;
+	man->stand_texture = map[man->y_pos][man->x_pos];
+	map[man->y_pos][man->x_pos] = man->char_texture;
+}
+
 void movement(character *man) {
 
 	/* buffer for scancode */
-	char check_true = 1;
 	char buffer[1];
-	while (check_true) {
-		
+	while (man->lock) {
+
 		/* Load scancode to buffer */
 		read_Scancode(buffer);
 		switch(buffer[0]) {
@@ -23,25 +66,24 @@ void movement(character *man) {
 				--man->x_pending;
 				break;
 
-				/* d: right */
+			/* d: right */
 			case 0x64:
 				++man->x_pending;
 				break;
 
-				/* s: down */
+			/* s: down */
 			case 0x73:
 				++man->y_pending;
 				break;
 
-				/* w: up */
+			/* w: up */
 			case 0x77:
 				--man->y_pending;
 				break;
 
-				/* done */
+			/* done */
 			default:
 				man->lock = 0;
-				check_true = 0;
 				break;
 		}			
 	}
