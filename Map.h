@@ -29,17 +29,17 @@ typedef struct {
 
 /* Map.c */
 char **free_Map(char **map);
+char **alloc_Map(void);
 char **free_Screen(char **Screen);
-void write_Screen(char **map, char **Screen, character *man);
 char **alloc_Screen (void);
-void update_Map(char **map, character *man);
+char **update_Map(char **map, character *man);
 void shift_mapUp(char **map, character *man);
 void shift_mapLeft(char **map, character *man);
 void realloc_x(char **old_map);
 char **realloc_y(char **old_map);
+void write_Screen(char **map, char **Screen, character *man);
 void write_Map(char **map ,int x_start,
 		       int y_start, int x_end, int y_end);
-char **alloc_Map(void);
 
 /* Movement.c */
 pthread_t *mov_Initialize(character *);
