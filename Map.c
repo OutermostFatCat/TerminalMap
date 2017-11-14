@@ -39,9 +39,9 @@ void write_Map(char **map ,int x_start,
 /* Increase map size in x */
 void realloc_x(char **old_map) {
 
+	char *new_y;
 	int y;
 	for (y = 0; y < y_size; y++) {
-		char *new_y;
 		if ((new_y = realloc(old_map[y], sizeof(char) * x_size * 2)) == NULL) {
 			printf("ERROR: realloc");
 			exit(0);
@@ -54,21 +54,22 @@ void realloc_x(char **old_map) {
 /* Increase map size in y */
 char **realloc_y(char **old_map) {
 
+	y_size *= 2;
 	char **new_map;
-	if ((new_map = realloc(old_map, sizeof(char *) * y_size * 2)) == NULL) {
+	if ((new_map = malloc(sizeof(char *) * y_size)) == NULL) {
 		printf("ERROR: realloc");
 		exit(0);
 	}
 
-	y_size *= 2;
-
 	int y;
-	for (y = y_size / 2; y < y_size; ++y) {
-		if ((new_map[y] = malloc(sizeof(char) * x_size)) == NULL) {
+	for (y = 0; y < y_size / 2; ++y) {
+		new_map[y] = old_map[y];
+		if ((new_map[y + y_size / 2] = malloc(sizeof(char) * x_size)) == NULL) {
 			printf("ERROR: realloc");
 			exit(0);
 		}
 	}
+	free(old_map);
 	return new_map;
 }
 
@@ -96,7 +97,7 @@ void shift_mapUp(char **map, character *man) {
 	int y;
 	char *p;
 	for (y = 0; y < y_size / 2; ++y) {
-		p = map[y + y_size/2];
+		p = map[y + y_size / 2];
 		map[y + y_size / 2] = map[y];
 		map[y] = p;
 	}
@@ -105,7 +106,7 @@ void shift_mapUp(char **map, character *man) {
 	man->y_pos += y_size / 2;
 }
 
-void update_Map(char **map, character *man) {
+char **update_Map(char **map, character *man) {
     
     /* Generate map to the right */	
     if (x_size - man->x_pos < 50) {
@@ -116,20 +117,23 @@ void update_Map(char **map, character *man) {
 	} else if (x_size - man->x_pos > x_size - 50) {
 		realloc_x(map);
 		shift_mapLeft(map, man);
-		write_Map(map, 0, 0, (x_size / 2) - 1, y_size - 1);
+		write_Map(map, 0, 0, x_size / 2 - 1, y_size - 1);
 	}
 
 	/* Generate map downwards */
 	if (y_size - man->y_pos < 50) {
 		map = realloc_y(map);
-		write_Map(map, 0, y_size / 2, x_size - 1, y_size - 1);
+		write_Map(map, 0, (y_size / 2), x_size - 1, (y_size - 1));
 
 	/* Generate map upwards */
 	} else if (y_size - man->y_pos > y_size - 50) {
-		realloc_y(map);
+		map = realloc_y(map);
 		shift_mapUp(map, man);
 		write_Map(map, 0, 0, x_size - 1, (y_size / 2) - 1);
 	}
+
+	/* Not returning map after reallocating y-memory will memory unaccessable */
+	return map;
 }
 
 char **alloc_Screen(void) {
@@ -182,7 +186,7 @@ void write_Screen(char **map, char **Screen, character *man) {
 char **free_Screen(char **screen) {
 
 	int i = 0;
-	while (screen[i] != NULL) {
+	while (screen[i]) {
 		free(screen[i++]);
 	}
 	free(screen);
@@ -193,7 +197,7 @@ char **free_Screen(char **screen) {
 char **free_Map(char **map) {
 
 	int i = 0;
-	while (map[i] != NULL) {
+	while (i < y_size) {
 		free(map[i++]);
 	}
 	free(map);
