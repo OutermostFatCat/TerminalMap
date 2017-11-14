@@ -47,7 +47,7 @@ int main()
 		nanosleep(&delay, NULL);
 
 		character_pos(map, &man);
-		update_Map(map, &man);
+		map = update_Map(map, &man);
 	}
 
 	/* clean up */
