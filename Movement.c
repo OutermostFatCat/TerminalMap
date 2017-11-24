@@ -15,23 +15,25 @@ void character_pos(char **map, character *man) {
 
 	/* go to left */
 	if (man->x_pending < 0) {
-		while (man->x_pending != 0) {
+		while (man->x_pending != 0 && map[man->y_pos][man->x_pos - 1] != 'M') {
 			--man->c_x;
 			--man->x_pos;
 			++man->x_pending;
 		}
 
 	/* else go to right */
-	} else if (man->x_pending > 0) {
+	} else if (man->x_pending > 0 && map[man->y_pos][man->x_pos + 1] != 'M') {
 		while (man->x_pending != 0) {
 			++man->c_x;
 			++man->x_pos;
 			--man->x_pending;
 		}
+	} else {
+		man->x_pending = 0;
 	}
 
 	/* go up */
-	if (man->y_pending < 0) {
+	if (man->y_pending < 0 && map[man->y_pos - 1][man->x_pos] != 'M') {
 		while (man->y_pending != 0) {
 			++man->c_y;
 			--man->y_pos;
@@ -39,16 +41,85 @@ void character_pos(char **map, character *man) {
 		}
 
 	/* else go down */
-	} else if (man->y_pending > 0) {
+	} else if (man->y_pending > 0 && map[man->y_pos + 1][man->x_pos] != 'M') {
 		while (man->y_pending != 0) {
 			--man->c_y;
 			++man->y_pos;
 			--man->y_pending;
 		}
+	} else {
+		man->y_pending = 0;
 	}
 	map[y_old][x_old] = man->stand_texture;
 	man->stand_texture = map[man->y_pos][man->x_pos];
 	map[man->y_pos][man->x_pos] = man->char_texture;
+}
+
+/* Find target and attack if close */
+void character_Attack(char **map, character *c, monster **m) {
+
+	int i;
+
+	/* Target monsters clockwise */
+	if (map[c->y_pos - 1][c->x_pos] == 'M') {
+		i = target_Monster(m, c->x_pos, c->y_pos - 1);
+		--m[i]->health;
+		if (m[i]->health == 0) {
+			m[i] = kill_Monster(map, m[i]);
+		}
+	} else if (map[c->y_pos - 1][c->x_pos + 1] == 'M') {
+		i = target_Monster(m, c->x_pos + 1, c->y_pos - 1);
+		--m[i]->health;
+		if (m[i]->health == 0) {
+			m[i] = kill_Monster(map, m[i]);
+		}
+	} else if (map[c->y_pos][c->x_pos + 1] == 'M') {
+		i = target_Monster(m, c->x_pos + 1, c->y_pos);
+		--m[i]->health;
+		if (m[i]->health == 0) {
+			m[i] = kill_Monster(map, m[i]);
+		}
+	} else if (map[c->y_pos + 1][c->x_pos + 1] == 'M') {
+		i = target_Monster(m, c->x_pos + 1, c->y_pos + 1);
+		--m[i]->health;
+		if (m[i]->health == 0) {
+			m[i] = kill_Monster(map, m[i]);
+		}
+	} else if (map[c->y_pos + 1][c->x_pos] == 'M') {
+		i = target_Monster(m, c->x_pos, c->y_pos + 1);
+		--m[i]->health;
+		if (m[i]->health == 0) {
+			m[i] = kill_Monster(map, m[i]);
+		}
+	} else if (map[c->y_pos + 1][c->x_pos - 1] == 'M') {
+		i = target_Monster(m, c->x_pos - 1, c->y_pos + 1);
+		--m[i]->health;
+		if (m[i]->health == 0) {
+			m[i] = kill_Monster(map, m[i]);
+		}
+	} else if (map[c->y_pos][c->x_pos - 1] == 'M') {
+		i = target_Monster(m, c->x_pos - 1, c->y_pos);
+		--m[i]->health;
+		if (m[i]->health == 0) {
+			m[i] = kill_Monster(map, m[i]);
+		}
+	} else if (map[c->y_pos - 1][c->x_pos - 1] == 'M') {
+		i = target_Monster(m, c->x_pos - 1, c->y_pos - 1);
+		--m[i]->health;
+		if (m[i]->health == 0) {
+			m[i] = kill_Monster(map, m[i]);
+		}
+	}
+
+	c->attack = 0;
+}
+
+int target_Monster (monster **m, int x, int y) {
+	
+	int i;
+	for (i = 0; m[i] == NULL || m[i]->x_pos != x || m[i]->y_pos != y; ++i)
+		;
+	return i;
 }
 
 void movement(character *man) {
@@ -79,6 +150,11 @@ void movement(character *man) {
 			/* w: up */
 			case 0x77:
 				--man->y_pending;
+				break;
+
+			/* space: attack */
+			case 0x20:
+				++man->attack;
 				break;
 
 			/* done */
