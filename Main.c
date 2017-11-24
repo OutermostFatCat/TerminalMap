@@ -3,13 +3,16 @@
 #include <pthread.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include "Map.h"
 
 struct timespec delay;
 
+monster *mon[10];
+
 int main()
-{
-	
+{	
+
 	character man;
 	man.x_pos = 100;
 	man.y_pos = 100;
@@ -17,6 +20,7 @@ int main()
 	man.y_pending = 0;
 	man.c_x = 0;
 	man.c_y = 0;
+	man.attack = 0;
 	man.stand_texture = 'S';
 	man.char_texture = 'C';
 
@@ -28,7 +32,14 @@ int main()
 	char **map = alloc_Map();
 	char **screen = alloc_Screen();
 	write_Map(map, 0, 0, 199, 199);
-	character_pos(map, &man);
+
+	int i = 0;
+	while (i < 10) {
+		mon[i++] = gen_Monster(map, &man);
+	}
+	i = 0;
+
+    character_pos(map, &man);
 
 	/* start up the thread for movement and initilaize raw input */
 	pthread_t *thread = mov_Initialize(&man);
@@ -47,6 +58,20 @@ int main()
 		nanosleep(&delay, NULL);
 
 		character_pos(map, &man);
+		if (man.attack > 0) {
+			character_Attack(map, &man, mon);
+		}
+
+		while (i < 10) {
+			if (mon[i] != NULL) {
+				if (check_Radius(mon[i], &man) == ATTACK) {
+					mon_Follow(map, mon[i], &man);
+					mon_Position(map, mon[i]);
+				}
+			}
+			++i;
+		}
+		i = 0;
 		map = update_Map(map, &man);
 	}
 
