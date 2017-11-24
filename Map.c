@@ -3,10 +3,6 @@
 #include <time.h>
 #include "Map.h"
 
-#define START_SIZE 200
-#define SCREEN_X 51
-#define SCREEN_Y 15
-
 int x_size = START_SIZE;
 int y_size = START_SIZE;
 
